@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Introduction to Koog</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', sans-serif;
+      background: #fff;
+      color: #000;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    body.presenting {
+      user-select: none;
+    }
+
+    #custom-cursor {
+      display: none;
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1.5px solid rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      transition: transform 0.1s ease;
+    }
+
+    #present-btn {
+      position: fixed;
+      top: 24px;
+      right: 40px;
+      z-index: 200;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #present-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar */
+    #sidebar-toggle {
+      position: fixed;
+      top: 24px;
+      left: 40px;
+      z-index: 200;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, left 0.25s ease;
+    }
+
+    #sidebar-toggle:hover {
+      background: #333;
+    }
+
+    #sidebar-toggle.shifted {
+      left: 300px;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      z-index: 150;
+      overflow-y: auto;
+      transition: left 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sidebar.open {
+      left: 0;
+    }
+
+    #sidebar-header {
+      padding: 24px 20px 16px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #999;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .sidebar-item:hover {
+      background: #f4f4f4;
+    }
+
+    .sidebar-item.active {
+      background: #000;
+      color: #fff;
+    }
+
+    .sidebar-item.active .sidebar-num {
+      color: #999;
+    }
+
+    .sidebar-num {
+      font-size: 11px;
+      color: #ccc;
+      min-width: 22px;
+      padding-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 140;
+    }
+
+    #sidebar-overlay.open {
+      display: block;
+    }
+
+    .slide {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      padding: 60px 100px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #fff;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    .tag {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #000;
+      margin-bottom: 36px;
+    }
+
+    .slide-number {
+      position: fixed;
+      bottom: 32px;
+      right: 40px;
+      font-size: 13px;
+      color: #999;
+    }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 32px;
+      left: 40px;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .s1-title {
+      font-size: 72px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 40px;
+    }
+
+    .s1-divider {
+      width: 60px;
+      height: 3px;
+      background: #000;
+      margin-bottom: 32px;
+    }
+
+    .s1-speaker {
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 36px;
+    }
+
+    .keywords span {
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    .koog-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .ki {
+      background: #f4f4f4;
+      border-radius: 12px;
+      padding: 20px 22px;
+      font-size: 17px;
+      font-weight: 400;
+      display: flex;
+      align-items: flex-end;
+      min-height: 90px;
+    }
+
+    .ki:nth-child(1) {
+      grid-column: span 2;
+      background: #000;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .ki:nth-child(2) {
+      grid-column: span 2;
+      background: #e8e8e8;
+    }
+
+    .ki:nth-child(3) {
+      grid-column: span 2;
+    }
+
+    .ki:nth-child(4) {
+      grid-column: span 2;
+      background: #e8e8e8;
+    }
+
+    .ki:nth-child(5) {
+      grid-column: span 1;
+    }
+
+    .ki:nth-child(6) {
+      grid-column: span 1;
+      background: #e8e8e8;
+    }
+
+    .ki:nth-child(7) {
+      grid-column: span 2;
+    }
+
+    .ki:nth-child(8) {
+      grid-column: span 3;
+      background: #e8e8e8;
+    }
+
+    .ki:nth-child(9) {
+      grid-column: span 1;
+      background: #000;
+      color: #fff;
+    }
+
+    .slide-4 {
+      padding: 50px 80px;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
+
+    .wi {
+      background: #f4f4f4;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 400;
+      display: flex;
+      align-items: flex-end;
+      min-height: 70px;
+      line-height: 1.4;
+    }
+
+    .wi.w2 {
+      grid-column: span 2;
+      background: #e8e8e8;
+      font-size: 14px;
+    }
+
+    .wi.acc {
+      background: #000;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .big-type {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .bt {
+      font-size: 52px;
+      font-weight: 700;
+      padding: 10px 0;
+      border-bottom: 1px solid #e0e0e0;
+      line-height: 1.2;
+    }
+
+    .bt:last-child {
+      border-bottom: none;
+    }
+
+    .code-slide {
+      padding: 50px 80px;
+      justify-content: flex-start;
+    }
+
+    .code-slide .tag {
+      margin-bottom: 20px;
+    }
+
+    .cr-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      width: 100%;
+      align-items: start;
+    }
+
+    .cb {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 24px 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #d4d4d4;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    .k {
+      color: #569cd6;
+    }
+
+    .f {
+      color: #dcdcaa;
+    }
+
+    .s {
+      color: #ce9178;
+    }
+
+    .c {
+      color: #4ec9b0;
+    }
+
+    .n {
+      color: #b5cea8;
+    }
+
+    .rb {
+      background: #f4f4f4;
+      border-radius: 12px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rl {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    .rt {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.7;
+    }
+
+    .cwa-wrap {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 20px;
+      width: 100%;
+      align-items: start;
+    }
+
+    .stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step {
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border-left: 3px solid #e0e0e0;
+    }
+
+    .step-num {
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 18px;
+      padding-top: 1px;
+    }
+
+    .step-body {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .step-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .step-desc {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .step-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: #e8e8e8;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .pn-item {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .pn-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pn-name {
+      font-size: 17px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      flex: 1;
+    }
+
+    .pn-chevron {
+      font-size: 20px;
+      color: #999;
+      transition: transform 0.2s;
+    }
+
+    .pn-header.open .pn-chevron {
+      transform: rotate(90deg);
+    }
+
+    .pn-code {
+      display: none;
+      margin: 0 0 12px 20px;
+    }
+
+    .pn-code.open {
+      display: block;
+    }
+
+    .slide-end {
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Hover: red + scale for interactive items */
+    .ki,
+    .wi,
+    .mi,
+    .bt,
+    .pn-header,
+    .step,
+    [class*="more-grid"]>div,
+    .big-type .bt {
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .ki:hover,
+    .wi:hover,
+    .mi:hover {
+      background: #e00 !important;
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    .bt:hover {
+      color: #e00;
+      transform: scale(1.02);
+    }
+
+    .pn-header:hover {
+      color: #e00;
+      transform: scale(1.01);
+    }
+
+    .pn-header:hover .pn-name {
+      color: #e00;
+    }
+
+    .step:hover {
+      border-left-color: #e00;
+      transform: scale(1.02);
+      background: #fff5f5;
+    }
+
+    /* SVG interactive items */
+    svg rect,
+    svg polygon {
+      transition: fill 0.18s ease, transform 0.18s ease;
+      cursor: default;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    svg rect:hover,
+    svg polygon:hover {
+      fill: #e00 !important;
+      transform: scale(1.06);
+    }
+
+    /* Slide 2 bento divs */
+    .slide [style*="border-radius:12px"] {
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .slide [style*="border-radius:12px"]:hover {
+      background: #e00 !important;
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    /* Slide 11 GOAP grid items */
+    .slide [style*="border-radius:12px"]:hover {
+      background: #e00 !important;
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    /* Slide 16 Running Prompts grid items */
+    .slide [style*="border-radius:12px"]:hover {
+      background: #e00 !important;
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    /* Slide 27 — dot+text list rows */
+    .slide>div[style*="display:flex"][style*="align-items:center"][style*="border-bottom"] {
+      transition: transform 0.18s ease, color 0.18s ease;
+    }
+
+    .slide>div[style*="display:flex"][style*="align-items:center"][style*="border-bottom"]:hover {
+      transform: scale(1.02);
+      color: #e00;
+    }
+
+    .slide>div[style*="display:flex"][style*="align-items:center"][style*="border-bottom"]:hover span {
+      color: #e00;
+    }
+
+    .slide>div[style*="display:flex"][style*="align-items:center"][style*="border-bottom"]:hover div {
+      background: #e00;
+    }
+
+    /* Slide 29 Events list rows */
+    .slide div[style*="padding-bottom:16px"][style*="border-bottom"] {
+      transition: transform 0.18s ease;
+    }
+
+    .slide div[style*="padding-bottom:16px"][style*="border-bottom"]:hover {
+      transform: scale(1.02);
+      color: #e00;
+    }
+
+    .slide div[style*="padding-bottom:16px"][style*="border-bottom"]:hover span {
+      color: #e00;
+    }
+
+    .slide div[style*="padding-bottom:16px"][style*="border-bottom"]:hover div {
+      background: #e00;
+    }
+
+    /* Slide 34 strategy component tiles */
+    .slide div[style*="min-height:140px"] {
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .slide div[style*="min-height:140px"]:hover {
+      background: #e00 !important;
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    .end-title {
+      font-size: 56px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .end-sub {
+      font-size: 20px;
+      font-weight: 400;
+      color: #555;
+    }
+
+    /* Bento grid for "and much more" slide */
+    .more-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .mi {
+      background: #f4f4f4;
+      border-radius: 12px;
+      padding: 24px 26px;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: flex-end;
+      min-height: 110px;
+      line-height: 1.3;
+    }
+
+    .mi.dark {
+      background: #000;
+      color: #fff;
+    }
+
+    .mi.mid {
+      background: #e8e8e8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 1: Title -->
+  <div class="slide active" style="justify-content:center; padding: 0; overflow:hidden;">
+    <!-- Background decorations -->
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <!-- Large circle top-right -->
+      <div
+        style="position:absolute;top:-120px;right:-120px;width:480px;height:480px;border-radius:50%;border:1.5px solid #e8e8e8;">
+      </div>
+      <div
+        style="position:absolute;top:-60px;right:-60px;width:340px;height:340px;border-radius:50%;border:1.5px solid #f0f0f0;">
+      </div>
+      <!-- Dot grid bottom-left -->
+      <svg style="position:absolute;bottom:0;left:0;opacity:0.12;" width="220" height="220" viewBox="0 0 220 220">
+        <defs>
+          <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.5" fill="#000" />
+          </pattern>
+        </defs>
+        <rect width="220" height="220" fill="url(#dots)" />
+      </svg>
+      <!-- Accent line top-left -->
+      <div
+        style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,#000 0%,transparent 60%);">
+      </div>
+      <!-- Small filled circle accent -->
+      <div style="position:absolute;bottom:120px;right:80px;width:10px;height:10px;border-radius:50%;background:#000;">
+      </div>
+      <div style="position:absolute;bottom:100px;right:110px;width:5px;height:5px;border-radius:50%;background:#ccc;">
+      </div>
+      <!-- Horizontal rule deco -->
+      <div
+        style="position:absolute;top:50%;right:0;width:200px;height:1px;background:linear-gradient(to left,transparent,#e0e0e0);">
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div
+      style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:80px 100px;position:relative;z-index:1;">
+      <div style="font-size:80px;font-weight:700;line-height:1.0;margin-bottom:20px;letter-spacing:-2px;">
+        Introduction<br>to Koog</div>
+      <div style="width:48px;height:3px;background:#000;margin-bottom:28px;"></div>
+      <div
+        style="font-size:13px;color:#999;font-weight:400;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">
+        Presented by</div>
+      <div style="font-size:22px;font-weight:700;color:#000;">Siva G</div>
+      <div style="font-size:11px;color:#bbb;letter-spacing:0.5px;margin-top:12px;">✦ content written &amp; presented by
+        a hooman</div>
+    </div>
+  </div>
+
+  <!-- 2: Preface -->
+  <div class="slide">
+    <div class="tag">Preface</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;">
+      <div
+        style="grid-column:span 2;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        Prompt</div>
+      <div
+        style="grid-column:span 2;background:#f4f4f4;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        System Prompt</div>
+      <div
+        style="grid-column:span 1;background:#e8e8e8;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        Context</div>
+      <div
+        style="grid-column:span 2;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        LLM Session</div>
+      <div
+        style="grid-column:span 1;background:#f4f4f4;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        Tools</div>
+      <div
+        style="grid-column:span 2;background:#e8e8e8;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        LLM Agent</div>
+      <div
+        style="grid-column:span 2;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:130px;">
+        Message</div>
+    </div>
+  </div>
+
+  <!-- 3: What is Koog -->
+  <div class="slide">
+    <div class="tag">What is Koog?</div>
+    <div class="koog-grid">
+      <div class="ki">Open-source JetBrains framework</div>
+      <div class="ki">Build AI agents in Kotlin</div>
+      <div class="ki">Idiomatic, type-safe Kotlin DSL</div>
+      <div class="ki">Designed for JVM &amp; Kotlin developers</div>
+      <div class="ki">Tool interaction support</div>
+      <div class="ki">Complex workflow handling</div>
+      <div class="ki">Kotlin Multiplatform support</div>
+      <div class="ki">Targets: JVM, JS, WasmJS, Android, iOS</div>
+      <div class="ki">Modular</div>
+    </div>
+  </div>
+
+  <!-- 4: Why Koog -->
+  <div class="slide slide-4">
+    <div class="tag">Why Koog?</div>
+    <div class="why-grid">
+      <div class="wi w2">Multiplatform support</div>
+      <div class="wi">Native JVM &amp; Kotlin integration</div>
+      <div class="wi">Backed by JetBrains</div>
+      <div class="wi">MCP</div>
+      <div class="wi">Knowledge retrieval and memory</div>
+      <div class="wi">Modular</div>
+      <div class="wi">Flexible graph workflows</div>
+      <div class="wi">Custom tools</div>
+      <div class="wi">Comprehensive tracing</div>
+      <div class="wi w2 acc">Out of the box: History compression strategies</div>
+      <div class="wi">Seamless LLM switching</div>
+      <div class="wi">Advanced persistence</div>
+      <div class="wi">Robust retry component</div>
+      <div class="wi w2">Structured typed streaming with Markdown DSL</div>
+      <div class="wi">Broad LLM availability</div>
+      <div class="wi">OpenTelemetry support</div>
+      <div class="wi w2">Inbuilt Spring Boot &amp; Ktor integration</div>
+    </div>
+  </div>
+
+  <!-- 5: Agent Types -->
+  <div class="slide">
+    <div class="tag">The Basics — Agent Types</div>
+    <div class="big-type">
+      <div class="bt">Basic Agent</div>
+      <div class="bt">Functional Agent</div>
+      <div class="bt">Complex Workflow Agent</div>
+      <div class="bt">Planner Agent</div>
+    </div>
+  </div>
+
+  <!-- 6: Basic Agents -->
+  <div class="slide code-slide">
+    <div class="tag">Basic Agents</div>
+    <div class="cr-wrap">
+      <pre class="cb"><code><span class="k">val</span> agent = <span class="f">AIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(
+        <span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>)
+    ),
+    systemPrompt = <span class="s">"You are a helpful assistant."</span>,
+    llmModel = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    temperature = <span class="n">0.7</span>,
+    toolRegistry = <span class="f">ToolRegistry</span> {
+        <span class="f">tool</span>(<span class="c">SayToUser</span>)
+    },
+    maxIterations = <span class="n">100</span>
+)
+<span class="k">fun</span> <span class="f">main</span>() = <span class="f">runBlocking</span> {
+    <span class="k">val</span> result = agent.<span class="f">run</span>(<span class="s">"Hello! How can you help me?"</span>)
+}</code></pre>
+      <div class="rb">
+        <div class="rl">Output</div>
+        <div class="rt">Agent says: Hello! I'm here to assist you with a variety of tasks. Feel free to ask. How can I
+          assist you today?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7: Functional Agents -->
+  <div class="slide code-slide">
+    <div class="tag">Functional Agents</div>
+    <div class="cr-wrap">
+      <pre class="cb" style="font-size:11px;line-height:1.7"><code><span class="k">val</span> mathWithTools = <span class="f">AIAgent</span>&lt;<span class="c">String</span>, <span class="c">String</span>&gt;(
+    systemPrompt = <span class="s">"You are a precise math assistant."</span>,
+    promptExecutor = <span class="f">simpleOllamaAIExecutor</span>(),
+    llmModel = <span class="c">OllamaModels</span>.Meta.<span class="c">LLAMA_3_2</span>,
+    toolRegistry = toolRegistry,
+    strategy = <span class="f">functionalStrategy</span> { input ->
+        <span class="k">var</span> responses = <span class="f">requestLLMMultiple</span>(input)
+        <span class="k">while</span> (responses.<span class="f">containsToolCalls</span>()) {
+            <span class="k">val</span> pendingCalls = <span class="f">extractToolCalls</span>(responses)
+            <span class="k">val</span> results = <span class="f">executeMultipleTools</span>(pendingCalls)
+            responses = <span class="f">sendMultipleToolResults</span>(results)
+        }
+        responses.<span class="f">single</span>().<span class="f">asAssistantMessage</span>().content
+    }
+)
+<span class="k">val</span> reply = mathWithTools.<span class="f">run</span>(<span class="s">"Multiply 12.5 and 4, then add 10."</span>)
+<span class="f">println</span>(reply)</code></pre>
+      <div class="rb">
+        <div class="rl">Output</div>
+        <div class="rt">1. 12.5 × 4 = <strong>50</strong><br><br>2. 50 + 10 = <strong>60</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8: Complex Workflow Agents -->
+  <div class="slide code-slide">
+    <div class="tag">Complex Workflow Agents</div>
+    <div class="cwa-wrap">
+      <pre class="cb" style="font-size:10px;line-height:1.6;max-height:72vh;overflow:auto"><code><span class="k">val</span> promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>))
+<span class="k">val</span> agentStrategy = <span class="f">strategy</span>(<span class="s">"Simple calculator"</span>) {
+    <span class="k">val</span> nodeSendInput <span class="k">by</span> <span class="f">nodeLLMRequest</span>()
+    <span class="k">val</span> nodeExecuteTool <span class="k">by</span> <span class="f">nodeExecuteTool</span>()
+    <span class="k">val</span> nodeSendToolResult <span class="k">by</span> <span class="f">nodeLLMSendToolResult</span>()
+    <span class="f">edge</span>(nodeStart <span class="k">forwardTo</span> nodeSendInput)
+    <span class="f">edge</span>((nodeSendInput <span class="k">forwardTo</span> nodeFinish) <span class="f">transformed</span> { it } <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+    <span class="f">edge</span>((nodeSendInput <span class="k">forwardTo</span> nodeExecuteTool) <span class="f">onToolCall</span> { <span class="k">true</span> })
+    <span class="f">edge</span>(nodeExecuteTool <span class="k">forwardTo</span> nodeSendToolResult)
+    <span class="f">edge</span>((nodeSendToolResult <span class="k">forwardTo</span> nodeFinish) <span class="f">transformed</span> { it } <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+}
+<span class="k">val</span> agentConfig = <span class="f">AIAgentConfig</span>(
+    prompt = <span class="c">Prompt</span>.<span class="f">build</span>(<span class="s">"simple-calculator"</span>) {
+        <span class="f">system</span>(<span class="s">"You are a simple calculator assistant."</span>)
+    },
+    model = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    maxAgentIterations = <span class="n">10</span>
+)
+@<span class="c">LLMDescription</span>(<span class="s">"Tools for basic arithmetic"</span>)
+<span class="k">class</span> <span class="c">CalculatorTools</span> : <span class="c">ToolSet</span> {
+    @<span class="c">Tool</span>
+    @<span class="c">LLMDescription</span>(<span class="s">"Add two numbers"</span>)
+    <span class="k">fun</span> <span class="f">add</span>(@<span class="c">LLMDescription</span>(<span class="s">"First"</span>) num1: <span class="c">Int</span>, @<span class="c">LLMDescription</span>(<span class="s">"Second"</span>) num2: <span class="c">Int</span>): <span class="c">String</span> {
+        <span class="k">return</span> <span class="s">"The sum of $num1 and $num2 is: ${num1 + num2}"</span>
+    }
+}
+<span class="k">val</span> toolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tools</span>(<span class="c">CalculatorTools</span>()) }
+<span class="k">val</span> agent = <span class="f">AIAgent</span>(
+    promptExecutor = promptExecutor, toolRegistry = toolRegistry,
+    strategy = agentStrategy, agentConfig = agentConfig,
+    installFeatures = {
+        <span class="f">install</span>(<span class="c">EventHandler</span>) {
+            <span class="f">onAgentStarting</span> { ctx -> <span class="f">println</span>(<span class="s">"Starting: ${ctx.agent.id}"</span>) }
+            <span class="f">onAgentCompleted</span> { ctx -> <span class="f">println</span>(<span class="s">"Result: ${ctx.result}"</span>) }
+        }
+    }
+)
+<span class="k">fun</span> <span class="f">main</span>() = <span class="f">runBlocking</span> {
+    <span class="k">val</span> result = agent.<span class="f">run</span>(<span class="f">readlnOrNull</span>() ?: <span class="s">""</span>)
+    <span class="f">println</span>(<span class="s">"The agent returned: $result"</span>)
+}</code></pre>
+      <div class="stepper">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Create the Prompt Executor</div>
+            <div class="step-desc">Use the OpenAI executor with an API key.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Define the Strategy</div>
+            <div class="step-desc">Nodes and edges route LLM requests and tool calls.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Configure the Agent</div>
+            <div class="step-desc">Set prompt, model, and max iterations via <code>AIAgentConfig</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Implement the Tool</div>
+            <div class="step-desc">A <code>ToolSet</code> with an annotated <code>add()</code> function.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Register the Tool</div>
+            <div class="step-desc">Add tool to <code>ToolRegistry</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Create &amp; Run</div>
+            <div class="step-desc">Assemble the agent with event handlers and run it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9: Planner Agents -->
+  <div class="slide" style="align-items:center;justify-content:flex-start;padding:60px 100px;">
+    <div class="tag">Planner Agents</div>
+    <div style="width:100%;display:flex;justify-content:center;">
+      <svg width="360" height="480" viewBox="0 0 360 480" font-family="Google Sans, sans-serif">
+        <rect x="80" y="20" width="200" height="52" rx="8" fill="#000" />
+        <text x="180" y="51" text-anchor="middle" fill="#fff" font-size="14">Create / Update Plan</text>
+        <line x1="180" y1="72" x2="180" y2="108" stroke="#000" stroke-width="2" />
+        <polygon points="180,116 175,104 185,104" fill="#000" />
+        <rect x="80" y="116" width="200" height="52" rx="8" fill="#000" />
+        <text x="180" y="147" text-anchor="middle" fill="#fff" font-size="14">Execute Single Step</text>
+        <line x1="180" y1="168" x2="180" y2="204" stroke="#000" stroke-width="2" />
+        <polygon points="180,212 175,200 185,200" fill="#000" />
+        <polygon points="180,212 300,284 180,356 60,284" fill="#f4f4f4" stroke="#000" stroke-width="2" />
+        <text x="180" y="280" text-anchor="middle" fill="#000" font-size="13" font-weight="600">Check</text>
+        <text x="180" y="296" text-anchor="middle" fill="#000" font-size="13" font-weight="600">Completion?</text>
+        <line x1="180" y1="356" x2="180" y2="396" stroke="#000" stroke-width="2" />
+        <polygon points="180,404 175,392 185,392" fill="#000" />
+        <rect x="80" y="404" width="200" height="52" rx="8" fill="#e8e8e8" />
+        <text x="180" y="435" text-anchor="middle" fill="#000" font-size="14">End</text>
+        <text x="188" y="378" fill="#555" font-size="11">Completed</text>
+        <line x1="300" y1="284" x2="330" y2="284" stroke="#000" stroke-width="2" />
+        <line x1="330" y1="284" x2="330" y2="46" stroke="#000" stroke-width="2" />
+        <line x1="330" y1="46" x2="282" y2="46" stroke="#000" stroke-width="2" />
+        <polygon points="274,46 286,41 286,51" fill="#000" />
+        <text x="336" y="215" fill="#555" font-size="11" transform="rotate(90,336,215)">Not Completed</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 10: Simple Planner -->
+  <div class="slide code-slide">
+    <div class="tag">Planner Agents — Simple Planner</div>
+    <div class="cwa-wrap">
+      <pre class="cb" style="font-size:12px;line-height:1.8"><code><span class="k">val</span> planner = <span class="f">SimpleLLMPlanner</span>()
+<span class="k">val</span> strategy = <span class="f">AIAgentPlannerStrategy</span>(name = <span class="s">"simple-planner"</span>, planner = planner)
+<span class="k">val</span> agentConfig = <span class="f">AIAgentConfig</span>(
+    prompt = <span class="f">prompt</span>(<span class="s">"planner"</span>) { <span class="f">system</span>(<span class="s">"You are a helpful planning assistant."</span>) },
+    model = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    maxAgentIterations = <span class="n">50</span>
+)
+<span class="k">val</span> agent = <span class="f">PlannerAIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>)),
+    strategy = strategy, agentConfig = agentConfig
+)
+<span class="k">suspend fun</span> <span class="f">main</span>() {
+    <span class="k">val</span> result = agent.<span class="f">run</span>(<span class="s">"Create a plan to organize a team meeting"</span>)
+    <span class="f">println</span>(result)
+}</code></pre>
+      <div class="stepper">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Create the Planner</div>
+            <div class="step-desc">Instantiate a <code>SimpleLLMPlanner</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Wrap in a Strategy</div>
+            <div class="step-desc">Pass to <code>AIAgentPlannerStrategy</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Configure the Agent</div>
+            <div class="step-desc">Set prompt, model, and max iterations.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Create Planner Agent</div>
+            <div class="step-desc">Assemble a <code>PlannerAIAgent</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Run the Agent</div>
+            <div class="step-desc">Call <code>agent.run()</code> — iterative planning begins.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11: GOAP -->
+  <div class="slide">
+    <div class="tag">Planner Agents — GOAP</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:24px;">Goal-Oriented Action Planning</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;">
+      <div
+        style="grid-column:span 4;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:24px;font-weight:700;">
+        A* Search</div>
+      <div
+        style="grid-column:span 2;background:#f4f4f4;border-radius:12px;padding:28px;font-size:24px;font-weight:700;min-height:120px;display:flex;align-items:flex-end;">
+        State</div>
+      <div
+        style="grid-column:span 2;background:#e8e8e8;border-radius:12px;padding:28px;font-size:24px;font-weight:700;min-height:120px;display:flex;align-items:flex-end;">
+        Actions</div>
+      <div
+        style="grid-column:span 4;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:24px;font-weight:700;">
+        Goals</div>
+    </div>
+  </div>
+
+  <!-- 12: GOAP Example -->
+  <div class="slide code-slide">
+    <div class="tag">Planner Agents — GOAP Example</div>
+    <div class="cwa-wrap">
+      <pre class="cb" style="font-size:9.5px;line-height:1.6;max-height:75vh;overflow:auto"><code><span class="k">data class</span> <span class="c">ContentState</span>(
+    <span class="k">val</span> topic: <span class="c">String</span>, <span class="k">val</span> hasOutline: <span class="c">Boolean</span> = <span class="k">false</span>,
+    <span class="k">val</span> outline: <span class="c">String</span> = <span class="s">""</span>, <span class="k">val</span> hasDraft: <span class="c">Boolean</span> = <span class="k">false</span>,
+    <span class="k">val</span> draft: <span class="c">String</span> = <span class="s">""</span>, <span class="k">val</span> hasReview: <span class="c">Boolean</span> = <span class="k">false</span>,
+    <span class="k">val</span> isPublished: <span class="c">Boolean</span> = <span class="k">false</span>
+)
+<span class="k">val</span> planner = <span class="f">goap</span>&lt;<span class="c">ContentState</span>&gt;(<span class="f">typeOf</span>&lt;<span class="c">ContentState</span>&gt;()) {
+    <span class="f">action</span>(name = <span class="s">"Create outline"</span>, precondition = { !it.hasOutline },
+        belief = { it.<span class="f">copy</span>(hasOutline = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
+    ) { ctx, state ->
+        <span class="k">val</span> r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Create outline for: ${state.topic}"</span>) }; <span class="f">requestLLM</span>() }
+        state.<span class="f">copy</span>(hasOutline = <span class="k">true</span>, outline = r.content)
+    }
+    <span class="f">action</span>(name = <span class="s">"Write draft"</span>, precondition = { it.hasOutline && !it.hasDraft },
+        belief = { it.<span class="f">copy</span>(hasDraft = <span class="k">true</span>) }, cost = { <span class="n">2.0</span> }
+    ) { ctx, state ->
+        <span class="k">val</span> r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Write article based on:\n${state.outline}"</span>) }; <span class="f">requestLLM</span>() }
+        state.<span class="f">copy</span>(hasDraft = <span class="k">true</span>, draft = r.content)
+    }
+    <span class="f">action</span>(name = <span class="s">"Review content"</span>, precondition = { it.hasDraft && !it.hasReview },
+        belief = { it.<span class="f">copy</span>(hasReview = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
+    ) { ctx, state ->
+        val r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Review:\n${state.draft}"</span>) }; <span class="f">requestLLM</span>() }
+        <span class="f">println</span>(<span class="s">"Review: ${r.content}"</span>); state.<span class="f">copy</span>(hasReview = <span class="k">true</span>)
+    }
+    <span class="f">action</span>(name = <span class="s">"Publish"</span>, precondition = { it.hasReview && !it.isPublished },
+        belief = { it.<span class="f">copy</span>(isPublished = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
+    ) { _, state -> <span class="f">println</span>(<span class="s">"Publishing..."</span>); state.<span class="f">copy</span>(isPublished = <span class="k">true</span>) }
+    <span class="f">goal</span>(name = <span class="s">"Published article"</span>, description = <span class="s">"Publish the article"</span>, condition = { it.isPublished })
+}
+<span class="k">val</span> agent = <span class="f">PlannerAIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>)),
+    strategy = <span class="f">AIAgentPlannerStrategy</span>(<span class="s">"content-planner"</span>, planner),
+    agentConfig = <span class="f">AIAgentConfig</span>(prompt = <span class="f">prompt</span>(<span class="s">"writer"</span>) { <span class="f">system</span>(<span class="s">"You are a content writer."</span>) },
+        model = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>, maxAgentIterations = <span class="n">20</span>)
+)
+<span class="k">suspend fun</span> <span class="f">main</span>() {
+    <span class="k">val</span> result = agent.<span class="f">run</span>(<span class="c">ContentState</span>(topic = <span class="s">"The Future of AI in Software Development"</span>))
+    <span class="f">println</span>(<span class="s">"Final state: $result"</span>)
+}</code></pre>
+      <div class="stepper">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Define State</div>
+            <div class="step-desc"><code>ContentState</code> tracks outline, draft, review, publish.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Create Outline</div>
+            <div class="step-desc">LLM generates outline from topic.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Write Draft</div>
+            <div class="step-desc">LLM writes article from outline.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Review Content</div>
+            <div class="step-desc">LLM reviews and suggests improvements.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Publish</div>
+            <div class="step-desc">Goal condition met — article is published.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Run the Agent</div>
+            <div class="step-desc">A* finds optimal action sequence to reach goal.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13: Prompts -->
+  <div class="slide">
+    <div class="tag">Prompts</div>
+    <div class="big-type">
+      <div class="bt">System Message</div>
+      <div class="bt">Assistant Message</div>
+      <div class="bt">User Message</div>
+      <div class="bt">Tool Message</div>
+    </div>
+  </div>
+
+  <!-- 14: Prompts Code -->
+  <div class="slide code-slide">
+    <div class="tag">Prompts — Code</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> prompt = <span class="f">prompt</span>(<span class="s">"unique_prompt_id"</span>) {
+    <span class="f">system</span>(<span class="s">"You are a helpful assistant with access to tools."</span>)
+    <span class="f">user</span>(<span class="s">"What is 5 + 3 ?"</span>)
+    <span class="f">assistant</span>(<span class="s">"The result is 8."</span>)
+}</code></pre>
+      <div style="font-size:15px;font-weight:600;color:#000;">Prompts support <em>Markdown &amp; XML</em> via a Kotlin
+        DSL</div>
+      <pre class="cb" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> prompt = <span class="f">prompt</span>(<span class="s">"markdown_xml_example"</span>) {
+    <span class="f">user</span> {
+        <span class="f">markdown</span> {
+            <span class="f">h2</span>(<span class="s">"Evaluate the article using the following criteria:"</span>)
+            <span class="f">bulleted</span> {
+                <span class="f">item</span> { +<span class="s">"Clarity and readability"</span> }
+                <span class="f">item</span> { +<span class="s">"Accuracy of information"</span> }
+                <span class="f">item</span> { +<span class="s">"Usefulness to the reader"</span> }
+            }
+        }
+    }
+    <span class="f">assistant</span> {
+        <span class="f">xml</span> {
+            <span class="f">xmlDeclaration</span>()
+            <span class="f">tag</span>(<span class="s">"review"</span>) {
+                <span class="f">tag</span>(<span class="s">"clarity"</span>) { <span class="f">text</span>(<span class="s">"positive"</span>) }
+                <span class="f">tag</span>(<span class="s">"accuracy"</span>) { <span class="f">text</span>(<span class="s">"neutral"</span>) }
+                <span class="f">tag</span>(<span class="s">"usefulness"</span>) { <span class="f">text</span>(<span class="s">"positive"</span>) }
+            }
+        }
+    }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 15: Multimodal -->
+  <div class="slide code-slide">
+    <div class="tag">Multimodal Inputs</div>
+    <pre class="cb" style="font-size:14px;line-height:2;width:100%;"><code><span class="k">val</span> prompt = <span class="f">prompt</span>(<span class="s">"mixed_content"</span>) {
+    <span class="f">system</span>(<span class="s">"You are a helpful assistant."</span>)
+    <span class="f">user</span> {
+        +<span class="s">"Compare the image with the document content."</span>
+        <span class="f">image</span>(<span class="c">Path</span>(<span class="s">"/path/to/image.png"</span>))
+        <span class="f">binaryFile</span>(<span class="c">Path</span>(<span class="s">"/path/to/page.pdf"</span>), <span class="s">"application/pdf"</span>)
+        +<span class="s">"Structure the result as a table"</span>
+    }
+}</code></pre>
+  </div>
+
+  <!-- 16: Running Prompts overview -->
+  <div class="slide">
+    <div class="tag">Running Prompts</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;">
+      <div
+        style="background:#000;color:#fff;border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.6;">Type 1</div>
+        <div style="font-size:28px;font-weight:700;">LLM Client</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#000;color:#fff;border-radius:12px;padding:24px 28px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.6;margin-bottom:6px;">Type 2
+          </div>
+          <div style="font-size:24px;font-weight:700;">Prompt Executor</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div
+            style="background:#f4f4f4;border-radius:12px;padding:20px;font-size:16px;font-weight:600;display:flex;align-items:flex-end;min-height:90px;">
+            Single-provider</div>
+          <div
+            style="background:#e8e8e8;border-radius:12px;padding:20px;font-size:16px;font-weight:600;display:flex;align-items:flex-end;min-height:90px;">
+            Multi-provider</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 17: LLM Client -->
+  <div class="slide code-slide">
+    <div class="tag">Running Prompts — LLM Client</div>
+    <pre class="cb" style="font-size:13px;line-height:1.9;width:100%;"><code><span class="k">fun</span> <span class="f">main</span>() = <span class="f">runBlocking</span> {
+    <span class="k">val</span> client = <span class="f">OpenAILLMClient</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>))
+    <span class="k">val</span> prompt = <span class="f">prompt</span>(<span class="s">"prompt_name"</span>, <span class="f">LLMParams</span>()) {
+        <span class="f">system</span>(<span class="s">"You are a helpful assistant."</span>)
+        <span class="f">user</span>(<span class="s">"Tell me about Kotlin"</span>)
+        <span class="f">assistant</span>(<span class="s">"Kotlin is a modern programming language..."</span>)
+        <span class="f">user</span>(<span class="s">"What are its key features?"</span>)
+    }
+    <span class="k">val</span> response = client.<span class="f">execute</span>(prompt, <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>)
+    <span class="f">println</span>(response)
+}</code></pre>
+  </div>
+
+  <!-- 18: Prompt Executor -->
+  <div class="slide code-slide">
+    <div class="tag">Running Prompts — Prompt Executor</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <div style="font-size:13px;font-weight:600;">Single-provider</div>
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> openAIClient = <span class="f">OpenAILLMClient</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_KEY"</span>))
+<span class="k">val</span> promptExecutor = <span class="f">SingleLLMPromptExecutor</span>(openAIClient)</code></pre>
+      <div style="font-size:13px;font-weight:600;">Multi-provider</div>
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> openAIClient = <span class="f">OpenAILLMClient</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_KEY"</span>))
+<span class="k">val</span> ollamaClient = <span class="f">OllamaClient</span>()
+<span class="k">val</span> multiExecutor = <span class="f">MultiLLMPromptExecutor</span>(
+    <span class="c">LLMProvider</span>.OpenAI to openAIClient,
+    <span class="c">LLMProvider</span>.Ollama to ollamaClient
+)</code></pre>
+    </div>
+  </div>
+
+  <!-- 19: Executing -->
+  <div class="slide code-slide">
+    <div class="tag">Running Prompts — Executing</div>
+    <pre class="cb" style="font-size:14px;line-height:2;width:100%;"><code><span class="k">val</span> promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="s">"OPENAI_KEY"</span>)
+<span class="k">val</span> response = promptExecutor.<span class="f">execute</span>(
+    prompt = <span class="f">prompt</span>(<span class="s">"demo"</span>) { <span class="f">user</span>(<span class="s">"Summarize this."</span>) },
+    model = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>
+)</code></pre>
+  </div>
+
+  <!-- 20: Handling Failures -->
+  <div class="slide">
+    <div class="tag">Handling Failures</div>
+    <div class="big-type">
+      <div class="bt">Retry</div>
+      <div class="bt">Timeout</div>
+      <div class="bt">Error Handling</div>
+    </div>
+  </div>
+
+  <!-- 21: Tools flow -->
+  <div class="slide">
+    <div class="tag">Tools</div>
+    <div style="width:100%;display:flex;justify-content:center;">
+      <svg width="300" height="420" viewBox="0 0 300 420" font-family="Google Sans, sans-serif">
+        <rect x="50" y="0" width="200" height="64" rx="10" fill="#000" />
+        <text x="150" y="24" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">1</text>
+        <text x="150" y="42" text-anchor="middle" fill="#fff" font-size="12">Create / use a</text>
+        <text x="150" y="56" text-anchor="middle" fill="#fff" font-size="12">built-in tool</text>
+        <line x1="150" y1="64" x2="150" y2="96" stroke="#000" stroke-width="2" />
+        <polygon points="150,104 145,92 155,92" fill="#000" />
+        <rect x="50" y="104" width="200" height="64" rx="10" fill="#000" />
+        <text x="150" y="128" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">2</text>
+        <text x="150" y="146" text-anchor="middle" fill="#fff" font-size="12">Add to</text>
+        <text x="150" y="160" text-anchor="middle" fill="#fff" font-size="12">Tool Registry</text>
+        <line x1="150" y1="168" x2="150" y2="200" stroke="#000" stroke-width="2" />
+        <polygon points="150,208 145,196 155,196" fill="#000" />
+        <rect x="50" y="208" width="200" height="64" rx="10" fill="#000" />
+        <text x="150" y="232" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">3</text>
+        <text x="150" y="250" text-anchor="middle" fill="#fff" font-size="12">Pass Registry</text>
+        <text x="150" y="264" text-anchor="middle" fill="#fff" font-size="12">to Agent</text>
+        <line x1="150" y1="272" x2="150" y2="304" stroke="#000" stroke-width="2" />
+        <polygon points="150,312 145,300 155,300" fill="#000" />
+        <rect x="50" y="312" width="200" height="64" rx="10" fill="#e8e8e8" />
+        <text x="150" y="336" text-anchor="middle" fill="#000" font-size="13" font-weight="700">4</text>
+        <text x="150" y="354" text-anchor="middle" fill="#000" font-size="12">Use Tool</text>
+        <text x="150" y="368" text-anchor="middle" fill="#000" font-size="12">with Agent</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 22: Tool Types -->
+  <div class="slide">
+    <div class="tag">Tools — Tool Types</div>
+    <div class="big-type">
+      <div class="bt">Built-in Tools</div>
+      <div class="bt">Annotation-based Tools</div>
+      <div class="bt">Class-based Tools</div>
+    </div>
+  </div>
+
+  <!-- 23: Built-in Tools -->
+  <div class="slide code-slide">
+    <div class="tag">Tools — Built-in Tools</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> toolRegistry = <span class="f">ToolRegistry</span> {
+    <span class="f">tool</span>(<span class="c">SayToUser</span>)
+    <span class="f">tool</span>(<span class="c">AskUser</span>)
+    <span class="f">tool</span>(<span class="c">ExitTool</span>)
+    <span class="f">tool</span>(<span class="c">ReadFileTool</span>(<span class="c">JVMFileSystemProvider</span>.ReadOnly))
+    <span class="f">tool</span>(<span class="c">ListDirectoryTool</span>(<span class="c">JVMFileSystemProvider</span>.ReadOnly))
+    <span class="f">tool</span>(<span class="c">WriteFileTool</span>(<span class="c">JVMFileSystemProvider</span>.ReadWrite))
+}</code></pre>
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> agent = <span class="f">AIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(apiToken),
+    systemPrompt = <span class="s">"You are a helpful assistant."</span>,
+    llmModel = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    toolRegistry = toolRegistry
+)</code></pre>
+    </div>
+  </div>
+
+  <!-- 24: Annotation-based Tools -->
+  <div class="slide code-slide">
+    <div class="tag">Tools — Annotation-based Tools</div>
+    <pre class="cb" style="font-size:11.5px;line-height:1.8;width:100%;overflow:auto;max-height:75vh"><code>@<span class="c">LLMDescription</span>(<span class="s">"Tools for performing diagnostics and troubleshooting on devices"</span>)
+<span class="k">class</span> <span class="c">DiagnosticToolSet</span> : <span class="c">ToolSet</span> {
+    @<span class="c">Tool</span>
+    @<span class="c">LLMDescription</span>(<span class="s">"Run diagnostic on a device to check its status and identify any issues"</span>)
+    <span class="k">fun</span> <span class="f">runDiagnostic</span>(
+        @<span class="c">LLMDescription</span>(<span class="s">"The ID of the device to diagnose"</span>) deviceId: <span class="c">String</span>,
+        @<span class="c">LLMDescription</span>(<span class="s">"Additional information (optional)"</span>) additionalInfo: <span class="c">String</span> = <span class="s">""</span>
+    ): <span class="c">String</span> = <span class="s">"Diagnostic results for device $deviceId"</span>
+
+    @<span class="c">Tool</span>
+    @<span class="c">LLMDescription</span>(<span class="s">"Analyze an error code to determine its meaning and possible solutions"</span>)
+    <span class="k">fun</span> <span class="f">analyzeError</span>(
+        @<span class="c">LLMDescription</span>(<span class="s">"The error code to analyze (e.g., 'E1001')"</span>) errorCode: <span class="c">String</span>
+    ): <span class="c">String</span> = <span class="s">"Analysis of error code $errorCode"</span>
+}</code></pre>
+  </div>
+
+  <!-- 25: Class-based Tools -->
+  <div class="slide code-slide">
+    <div class="tag">Tools — Class-based Tools</div>
+    <pre class="cb" style="font-size:11.5px;line-height:1.8;width:100%;overflow:auto;max-height:75vh"><code><span class="k">object</span> <span class="c">CalculatorTool</span> : <span class="c">Tool</span>&lt;<span class="c">CalculatorTool</span>.Args, <span class="c">Int</span>&gt;(
+    argsSerializer = Args.<span class="f">serializer</span>(),
+    resultSerializer = <span class="c">Int</span>.<span class="f">serializer</span>(),
+    name = <span class="s">"calculator"</span>,
+    description = <span class="s">"A simple calculator that can add two digits (0-9)."</span>
+) {
+    @<span class="c">Serializable</span>
+    <span class="k">data class</span> <span class="c">Args</span>(
+        @property:<span class="c">LLMDescription</span>(<span class="s">"The first digit to add (0-9)"</span>) <span class="k">val</span> digit1: <span class="c">Int</span>,
+        @property:<span class="c">LLMDescription</span>(<span class="s">"The second digit to add (0-9)"</span>) <span class="k">val</span> digit2: <span class="c">Int</span>
+    ) {
+        <span class="k">init</span> {
+            <span class="f">require</span>(digit1 <span class="k">in</span> <span class="n">0</span>..<span class="n">9</span>) { <span class="s">"digit1 must be a single digit (0-9)"</span> }
+            <span class="f">require</span>(digit2 <span class="k">in</span> <span class="n">0</span>..<span class="n">9</span>) { <span class="s">"digit2 must be a single digit (0-9)"</span> }
+        }
+    }
+    <span class="k">override suspend fun</span> <span class="f">execute</span>(args: <span class="c">Args</span>): <span class="c">Int</span> = args.digit1 + args.digit2
+}</code></pre>
+  </div>
+
+  <!-- 26: Tool Registry -->
+  <div class="slide code-slide">
+    <div class="tag">Tools — Tool Registry</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> firstToolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tool</span>(<span class="c">FirstSampleTool</span>) }
+<span class="k">val</span> secondToolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tool</span>(<span class="c">SecondSampleTool</span>) }
+<span class="k">val</span> newRegistry = firstToolRegistry + secondToolRegistry</code></pre>
+      <pre class="cb" style="font-size:13px;line-height:1.9;"><code><span class="k">val</span> agent = <span class="f">AIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>)),
+    systemPrompt = <span class="s">"You are a helpful assistant with strong mathematical skills."</span>,
+    llmModel = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    toolRegistry = toolRegistry
+)</code></pre>
+    </div>
+  </div>
+
+  <!-- 27: Calling Tools -->
+  <div class="slide">
+    <div class="tag">Tools — Calling Tools</div>
+    <div style="font-size:16px;font-weight:600;color:#999;margin-bottom:28px;">Calling tools from nodes</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;">nodeExecuteTool</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;">nodeExecuteSingleTool</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;">nodeExecuteMultipleTools</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;">nodeLLMSendToolResult</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;">nodeLLMSendMultipleToolResults</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 28: The Magic -->
+  <div class="slide code-slide">
+    <div class="tag">Tools — The Magic</div>
+    <div style="font-size:15px;font-weight:600;color:#999;margin-bottom:20px;">Using Agents as Tools</div>
+    <div style="display:flex;flex-direction:column;gap:14px;width:100%;">
+      <div style="font-size:12px;font-weight:600;">Converting agents to tools</div>
+      <pre class="cb" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> analysisAgentService = <span class="f">AIAgentService</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(apiKey),
+    llmModel = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    systemPrompt = <span class="s">"You are a financial analysis specialist."</span>,
+    toolRegistry = analysisToolRegistry
+)
+<span class="k">val</span> analysisAgentTool = analysisAgentService.<span class="f">createAgentTool</span>(
+    agentName = <span class="s">"analyzeTransactions"</span>,
+    agentDescription = <span class="s">"Performs financial transaction analysis"</span>,
+    inputDescription = <span class="s">"Transaction analysis request"</span>
+)</code></pre>
+      <div style="font-size:12px;font-weight:600;">Using agent tools in other agents</div>
+      <pre class="cb" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> coordinatorAgent = <span class="f">AIAgent</span>(
+    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(apiKey),
+    llmModel = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>,
+    systemPrompt = <span class="s">"You coordinate different specialized services."</span>,
+    toolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tool</span>(analysisAgentTool) }
+)</code></pre>
+    </div>
+  </div>
+
+  <!-- 29: Events -->
+  <div class="slide">
+    <div class="tag">Events</div>
+    <div style="display:flex;flex-direction:column;gap:16px;width:100%;">
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">Agent lifecycle events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">Strategy events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">Node execution events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">LLM call events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid #e0e0e0;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">LLM streaming events</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+          style="font-size:28px;font-weight:700;">Tool execution events</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 30: Nodes -->
+  <div class="slide code-slide">
+    <div class="tag">Nodes</div>
+    <div style="display:flex;flex-direction:column;gap:24px;width:100%;align-items:center;">
+      <svg width="580" height="180" viewBox="0 0 580 180" font-family="Google Sans, sans-serif">
+        <line x1="20" y1="90" x2="98" y2="90" stroke="#000" stroke-width="2" />
+        <polygon points="106,90 94,85 94,95" fill="#000" />
+        <text x="10" y="80" font-size="13" fill="#555" font-weight="500">Input</text>
+        <rect x="106" y="20" width="340" height="140" rx="14" fill="#f4f4f4" stroke="#000" stroke-width="2" />
+        <text x="122" y="42" font-size="12" fill="#999" letter-spacing="2" font-weight="500">NODE</text>
+        <rect x="146" y="55" width="260" height="80" rx="10" fill="#000" />
+        <text x="276" y="101" text-anchor="middle" fill="#fff" font-size="16" font-weight="600">Do Stuff</text>
+        <line x1="446" y1="90" x2="554" y2="90" stroke="#000" stroke-width="2" />
+        <polygon points="562,90 550,85 550,95" fill="#000" />
+        <text x="464" y="80" font-size="13" fill="#555" font-weight="500">Output</text>
+      </svg>
+      <div style="font-size:15px;font-weight:400;color:#000;">A node that expects a <strong>String</strong> as input and
+        returns the <strong>length</strong> of the string (an <strong>Int</strong>) as output.</div>
+      <pre class="cb" style="font-size:14px;line-height:2;width:100%;"><code><span class="k">val</span> nodeLength <span class="k">by</span> <span class="f">node</span>&lt;<span class="c">String</span>, <span class="c">Int</span>&gt; { input ->
+    input.length
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 31: Predefined Nodes -->
+  <div class="slide" style="padding:50px 100px;justify-content:flex-start;">
+    <div class="tag">Predefined Nodes</div>
+    <div style="display:flex;flex-direction:column;gap:0;width:100%;overflow:auto;max-height:78vh;">
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeDoNothing</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> passthrough <span class="k">by</span> <span class="f">nodeDoNothing</span>&lt;<span class="c">String</span>&gt;(<span class="s">"passthrough"</span>)
+<span class="f">edge</span>(nodeStart <span class="k">forwardTo</span> passthrough)
+<span class="f">edge</span>(passthrough <span class="k">forwardTo</span> nodeFinish)</code></pre>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeAppendPrompt</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> setupContext <span class="k">by</span> <span class="f">nodeAppendPrompt</span>&lt;<span class="c">Output</span>&gt;(<span class="s">"setupContext"</span>) {
+    <span class="f">system</span>(<span class="s">"You are a helpful assistant specialized in Kotlin programming."</span>)
+    <span class="f">user</span>(<span class="s">"I need help with Kotlin coroutines."</span>)
+}
+<span class="f">edge</span>(firstNode <span class="k">forwardTo</span> setupContext)
+<span class="f">edge</span>(setupContext <span class="k">forwardTo</span> secondNode)</code></pre>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" style="cursor:default;">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMSendMessageOnlyCallingTools</span>
+        </div>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" style="cursor:default;">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMSendMessageForceOneTool</span>
+        </div>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMRequest</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> requestLLM <span class="k">by</span> <span class="f">nodeLLMRequest</span>(<span class="s">"requestLLM"</span>, allowToolCalls = <span class="k">true</span>)
+<span class="f">edge</span>(getUserQuestion <span class="k">forwardTo</span> requestLLM)</code></pre>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" style="cursor:default;">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMRequestStructured</span>
+        </div>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" style="cursor:default;">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMRequestStreaming</span>
+        </div>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMRequestMultiple</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code"
+          style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> requestLLMMultipleTools <span class="k">by</span> <span class="f">nodeLLMRequestMultiple</span>()
+<span class="f">edge</span>(getComplexUserQuestion <span class="k">forwardTo</span> requestLLMMultipleTools)</code></pre>
+      </div>
+      <div class="pn-item" style="border-bottom:none;">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span
+            class="pn-name">nodeLLMCompressHistory</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:11px;line-height:1.7;"><code><span class="k">val</span> compressHistory <span class="k">by</span> <span class="f">nodeLLMCompressHistory</span>&lt;<span class="c">String</span>&gt;(
+    <span class="s">"compressHistory"</span>,
+    strategy = <span class="c">HistoryCompressionStrategy</span>.<span class="f">FromLastNMessages</span>(<span class="n">10</span>),
+    preserveMemory = <span class="k">true</span>
+)
+<span class="f">edge</span>(generateHugeHistory <span class="k">forwardTo</span> compressHistory)</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 32: Predefined Strategies -->
+  <div class="slide" style="padding:50px 100px;justify-content:flex-start;">
+    <div style="font-size:36px;font-weight:700;color:#000;margin-bottom:8px;">Strategies</div>
+    <div class="tag">Predefined Strategies</div>
+    <div style="display:flex;flex-direction:column;gap:0;width:100%;overflow:auto;max-height:65vh;">
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span class="pn-name">Single run
+            strategy</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:10px;line-height:1.7;"><code><span class="k">public fun</span> <span class="f">singleRunStrategy</span>(): <span class="c">AIAgentGraphStrategy</span>&lt;<span class="c">String</span>, <span class="c">String</span>&gt; = <span class="f">strategy</span>(<span class="s">"single_run"</span>) {
+    <span class="k">val</span> nodeCallLLM <span class="k">by</span> <span class="f">nodeLLMRequest</span>(<span class="s">"sendInput"</span>)
+    <span class="k">val</span> nodeExecuteTool <span class="k">by</span> <span class="f">nodeExecuteTool</span>(<span class="s">"nodeExecuteTool"</span>)
+    <span class="k">val</span> nodeSendToolResult <span class="k">by</span> <span class="f">nodeLLMSendToolResult</span>(<span class="s">"nodeSendToolResult"</span>)
+    <span class="f">edge</span>(nodeStart <span class="k">forwardTo</span> nodeCallLLM)
+    <span class="f">edge</span>(nodeCallLLM <span class="k">forwardTo</span> nodeExecuteTool <span class="f">onToolCall</span> { <span class="k">true</span> })
+    <span class="f">edge</span>(nodeCallLLM <span class="k">forwardTo</span> nodeFinish <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+    <span class="f">edge</span>(nodeExecuteTool <span class="k">forwardTo</span> nodeSendToolResult)
+    <span class="f">edge</span>(nodeSendToolResult <span class="k">forwardTo</span> nodeFinish <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+    <span class="f">edge</span>(nodeSendToolResult <span class="k">forwardTo</span> nodeExecuteTool <span class="f">onToolCall</span> { <span class="k">true</span> })
+}</code></pre>
+      </div>
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span class="pn-name">Tool-based
+            strategy</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:10px;line-height:1.7;"><code><span class="k">fun</span> <span class="f">toolBasedStrategy</span>(name: <span class="c">String</span>, toolRegistry: <span class="c">ToolRegistry</span>): <span class="c">AIAgentGraphStrategy</span>&lt;<span class="c">String</span>, <span class="c">String</span>&gt; {
+    <span class="k">return</span> <span class="f">strategy</span>(name) {
+        <span class="k">val</span> nodeSendInput <span class="k">by</span> <span class="f">nodeLLMRequest</span>()
+        <span class="k">val</span> nodeExecuteTool <span class="k">by</span> <span class="f">nodeExecuteTool</span>()
+        <span class="k">val</span> nodeSendToolResult <span class="k">by</span> <span class="f">nodeLLMSendToolResult</span>()
+        <span class="f">edge</span>(nodeStart <span class="k">forwardTo</span> nodeSendInput)
+        <span class="f">edge</span>((nodeSendInput <span class="k">forwardTo</span> nodeFinish) <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+        <span class="f">edge</span>((nodeSendInput <span class="k">forwardTo</span> nodeExecuteTool) <span class="f">onToolCall</span> { <span class="k">true</span> })
+        <span class="f">edge</span>(nodeExecuteTool <span class="k">forwardTo</span> nodeSendToolResult)
+        <span class="f">edge</span>((nodeSendToolResult <span class="k">forwardTo</span> nodeExecuteTool) <span class="f">onToolCall</span> { <span class="k">true</span> })
+        <span class="f">edge</span>((nodeSendToolResult <span class="k">forwardTo</span> nodeFinish) <span class="f">onAssistantMessage</span> { <span class="k">true</span> })
+    }
+}</code></pre>
+      </div>
+      <div class="pn-item" style="border-bottom:none;">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span class="pn-name">Streaming
+            data strategy</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:10px;line-height:1.7;"><code><span class="k">val</span> agentStrategy = <span class="f">strategy</span>&lt;<span class="c">String</span>, <span class="c">List</span>&lt;<span class="c">Book</span>&gt;&gt;(<span class="s">"library-assistant"</span>) {
+    <span class="k">val</span> getMdOutput <span class="k">by</span> <span class="f">node</span>&lt;<span class="c">String</span>, <span class="c">List</span>&lt;<span class="c">Book</span>&gt;&gt; { booksDescription ->
+        <span class="k">val</span> books = <span class="f">mutableListOf</span>&lt;<span class="c">Book</span>&gt;()
+        llm.<span class="f">writeSession</span> {
+            <span class="f">appendPrompt</span> { <span class="f">user</span>(booksDescription) }
+            <span class="f">parseMarkdownStreamToBooks</span>(<span class="f">requestLLMStreaming</span>(<span class="f">markdownBookDefinition</span>())).<span class="f">collect</span> { books.<span class="f">add</span>(it) }
+        }
+        books
+    }
+    <span class="f">edge</span>(nodeStart <span class="k">forwardTo</span> getMdOutput)
+    <span class="f">edge</span>(getMdOutput <span class="k">forwardTo</span> nodeFinish)
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 33: Predefined Agent Strategies -->
+  <div class="slide" style="padding:50px 100px;justify-content:flex-start;">
+    <div class="tag">Predefined Agent Strategies</div>
+    <div style="display:flex;flex-direction:column;gap:0;width:100%;overflow:auto;max-height:78vh;">
+      <div class="pn-item">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span class="pn-name">Chat agent
+            strategy</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:10px;line-height:1.7;"><code><span class="k">val</span> chatAgent = <span class="f">AIAgent</span>(
+    promptExecutor = promptExecutor, llmModel = model,
+    strategy = <span class="f">chatAgentStrategy</span>(),
+    toolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tool</span>(searchTool); <span class="f">tool</span>(weatherTool) }
+)
+<span class="k">suspend fun</span> <span class="f">main</span>() {
+    <span class="k">val</span> result = chatAgent.<span class="f">run</span>(<span class="s">"What's the weather like today and should I bring an umbrella?"</span>)
+}</code></pre>
+      </div>
+      <div class="pn-item" style="border-bottom:none;">
+        <div class="pn-header" onclick="toggleNode(this)">
+          <div style="width:8px;height:8px;background:#000;border-radius:50%;"></div><span class="pn-name">ReAct
+            strategy</span><span class="pn-chevron">›</span>
+        </div>
+        <pre class="cb pn-code" style="font-size:10px;line-height:1.7;"><code><span class="k">val</span> bankingAgent = <span class="f">AIAgent</span>(
+    promptExecutor = promptExecutor, llmModel = model,
+    strategy = <span class="f">reActStrategy</span>(reasoningInterval = <span class="n">1</span>, name = <span class="s">"banking_agent"</span>),
+    toolRegistry = <span class="f">ToolRegistry</span> { <span class="f">tool</span>(getTransactions); <span class="f">tool</span>(calculateSum) }
+)
+<span class="k">suspend fun</span> <span class="f">main</span>() {
+    <span class="k">val</span> result = bankingAgent.<span class="f">run</span>(<span class="s">"How much did I spend last month?"</span>)
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 34: Create Your Own Strategy -->
+  <div class="slide">
+    <div class="tag">Create Your Own Strategy</div>
+    <div style="font-size:16px;font-weight:600;color:#999;margin-bottom:24px;">Components of a Strategy</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;">
+      <div
+        style="grid-column:span 2;background:#000;color:#fff;border-radius:12px;padding:32px 28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:140px;">
+        Strategy</div>
+      <div
+        style="grid-column:span 2;background:#f4f4f4;border-radius:12px;padding:32px 28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:140px;">
+        Subgraphs</div>
+      <div
+        style="grid-column:span 2;background:#e8e8e8;border-radius:12px;padding:32px 28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:140px;">
+        Nodes</div>
+      <div
+        style="grid-column:span 2;background:#000;color:#fff;border-radius:12px;padding:32px 28px;font-size:28px;font-weight:700;display:flex;align-items:flex-end;min-height:140px;">
+        Edges</div>
+    </div>
+  </div>
+
+  <!-- 34.1: Nodes & Edges -->
+  <div class="slide code-slide">
+    <div class="tag">Create Your Own Strategy</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;width:100%;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:18px;font-weight:700;">Nodes</div>
+        <svg width="100%" height="80" viewBox="0 0 420 80" font-family="Google Sans, sans-serif">
+          <rect x="0" y="14" width="110" height="44" rx="8" fill="#000" />
+          <text x="55" y="42" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">nodeStart</text>
+          <line x1="110" y1="36" x2="148" y2="36" stroke="#000" stroke-width="2" />
+          <polygon points="156,36 144,31 144,41" fill="#000" />
+          <rect x="156" y="14" width="110" height="44" rx="8" fill="#e8e8e8" />
+          <text x="211" y="42" text-anchor="middle" fill="#000" font-size="13" font-weight="600">your own nodes</text>
+          <line x1="266" y1="36" x2="304" y2="36" stroke="#000" stroke-width="2" />
+          <polygon points="312,36 300,31 300,41" fill="#000" />
+          <rect x="312" y="14" width="108" height="44" rx="8" fill="#000" />
+          <text x="366" y="42" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">nodeFinish</text>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:18px;font-weight:700;">Edges</div>
+        <pre class="cb"
+          style="font-size:12px;line-height:1.8;"><code><span class="f">edge</span>(sourceNode <span class="k">forwardTo</span> targetNode)</code></pre>
+        <div style="font-size:13px;font-weight:600;color:#555;">Edge conditions</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:6px;height:6px;background:#000;border-radius:50%;"></div><span
+              style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;">onCondition</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:6px;height:6px;background:#000;border-radius:50%;"></div><span
+              style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;">onToolCall</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:6px;height:6px;background:#000;border-radius:50%;"></div><span
+              style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;">onAssistantMessage</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:6px;height:6px;background:#000;border-radius:50%;"></div><span
+              style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;">onMultipleToolCalls</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:6px;height:6px;background:#000;border-radius:50%;"></div><span
+              style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;">onToolNotCalled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 34.2: Subgraphs -->
+  <div class="slide code-slide">
+    <div class="tag">Create Your Own Strategy — Subgraphs</div>
+    <pre class="cb" style="font-size:13px;line-height:1.9;width:100%;"><code><span class="k">val</span> strategy = <span class="f">strategy</span>&lt;<span class="c">Input</span>, <span class="c">Output</span>&gt;(<span class="s">"strategy-name"</span>) {
+    <span class="k">val</span> firstSubgraph <span class="k">by</span> <span class="f">subgraph</span>&lt;<span class="c">FirstInput</span>, <span class="c">FirstOutput</span>&gt;(<span class="s">"first"</span>) {
+        <span class="c">// Define nodes and edges for this subgraph</span>
+    }
+    <span class="k">val</span> secondSubgraph <span class="k">by</span> <span class="f">subgraph</span>&lt;<span class="c">SecondInput</span>, <span class="c">SecondOutput</span>&gt;(<span class="s">"second"</span>) {
+        <span class="c">// Define nodes and edges for this subgraph</span>
+    }
+}</code></pre>
+  </div>
+
+  <!-- NEW: And Much More -->
+  <div class="slide" style="padding:50px 80px;">
+    <div style="font-size:52px;font-weight:700;line-height:1.1;margin-bottom:28px;">and much more...</div>
+    <div class="more-grid">
+      <div class="mi dark" style="grid-column:span 2;">A2A</div>
+      <div class="mi mid" style="grid-column:span 2;">Content moderation</div>
+      <div class="mi" style="grid-column:span 1;">Agent persistence</div>
+      <div class="mi dark" style="grid-column:span 2;">RAG</div>
+      <div class="mi mid" style="grid-column:span 1;">Agent memory</div>
+    </div>
+  </div>
+
+  <!-- Bonus: Agent Maxxing -->
+  <div class="slide" style="padding:50px 100px;">
+    <div class="tag">Bonus</div>
+    <div style="font-size:46px;font-weight:700;line-height:1.1;margin-bottom:32px;">steps to achieve<br>agent maxxing
+    </div>
+    <div style="display:flex;flex-direction:column;width:100%;gap:0;">
+      <div style="display:flex;align-items:flex-start;gap:20px;padding:18px 0;border-bottom:1px solid #e0e0e0;">
+        <div
+          style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#bbb;min-width:24px;padding-top:3px;">
+          01</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:3px;">Follow prompt design principles</div>
+          <div style="font-size:13px;color:#666;line-height:1.6;">Be clear &amp; specific. Use constraints, examples,
+            and structured formats. Iterate — prompting is never one-and-done.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:20px;padding:18px 0;border-bottom:1px solid #e0e0e0;">
+        <div
+          style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#bbb;min-width:24px;padding-top:3px;">
+          02</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:3px;">Tell your agent to be token-efficient</div>
+          <div style="font-size:13px;color:#666;line-height:1.6;">Instruct the agent to respond concisely. Fewer tokens
+            = lower cost + faster loops. Add it to the system prompt.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:20px;padding:18px 0;border-bottom:1px solid #e0e0e0;">
+        <div
+          style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#bbb;min-width:24px;padding-top:3px;">
+          03</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:3px;">Run cron jobs on a local model</div>
+          <div style="font-size:13px;color:#666;line-height:1.6;">Scheduled tasks don't need a frontier model. Use
+            Ollama or similar — keeps costs near zero for background work.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:20px;padding:18px 0;">
+        <div
+          style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#bbb;min-width:24px;padding-top:3px;">
+          04</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:3px;">Use hooks to trigger agents in multi-agent
+            systems</div>
+          <div style="font-size:13px;color:#666;line-height:1.6;">Don't poll. Let agents emit events and use hooks to
+            chain or spawn other agents — reactive, not scheduled.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End -->
+  <div class="slide slide-end">
+    <div style="font-size: 100px; margin-bottom: 16px;">🙏</div>
+    <div class="end-title">Thank You</div>
+    <div class="end-sub">Siva G</div>
+  </div>
+
+  <button id="sidebar-toggle" title="Slides">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+      <path fill-rule="evenodd"
+        d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z"
+        clip-rule="evenodd" />
+    </svg>
+  </button>
+  <div id="sidebar-overlay"></div>
+  <div id="sidebar">
+    <div id="sidebar-header">Slides</div>
+    <div id="sidebar-list"></div>
+  </div>
+  <button id="present-btn" title="Present">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+      <path fill-rule="evenodd"
+        d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
+        clip-rule="evenodd" />
+    </svg>
+  </button>
+  <div id="custom-cursor"></div>
+  <div class="nav-hint">← → to navigate</div>
+  <div class="slide-number">1 / 38</div>
+  <div id="progress-bar" style="position:fixed;bottom:0;left:0;width:100%;height:3px;background:#e0e0e0;z-index:100;">
+    <div id="progress-fill" style="height:100%;background:#000;width:0%;transition:width 0.3s ease;"></div>
+  </div>
+
+  <script>
+    var slides = document.querySelectorAll('.slide');
+    var numEl = document.querySelector('.slide-number');
+    var cur = 0;
+
+    // Sidebar
+    var slideTitles = [
+      "Title", "Preface", "What is Koog?", "Why Koog?", "Agent Types",
+      "Basic Agents", "Functional Agents", "Complex Workflow Agents",
+      "Planner Agents", "Simple Planner", "GOAP", "GOAP Example",
+      "Prompts", "Prompts — Code", "Multimodal Inputs", "Running Prompts",
+      "LLM Client", "Prompt Executor", "Executing", "Handling Failures",
+      "Tools", "Tool Types", "Built-in Tools", "Annotation-based Tools",
+      "Class-based Tools", "Tool Registry", "Calling Tools", "The Magic",
+      "Events", "Nodes", "Predefined Nodes", "Predefined Strategies",
+      "Predefined Agent Strategies", "Create Your Own Strategy",
+      "Nodes & Edges", "Subgraphs", "And Much More...", "Thank You"
+    ];
+
+    var sidebarList = document.getElementById('sidebar-list');
+    var sidebarEl = document.getElementById('sidebar');
+    var overlayEl = document.getElementById('sidebar-overlay');
+
+    slideTitles.forEach(function (title, i) {
+      var item = document.createElement('div');
+      item.className = 'sidebar-item' + (i === 0 ? ' active' : '');
+      item.innerHTML = '<span class="sidebar-num">' + String(i + 1).padStart(2, '0') + '</span><span class="sidebar-title">' + title + '</span>';
+      item.addEventListener('click', function (e) {
+        e.stopPropagation();
+        show(i);
+        closeSidebar();
+      });
+      sidebarList.appendChild(item);
+    });
+
+    function updateSidebarActive() {
+      var items = sidebarList.querySelectorAll('.sidebar-item');
+      items.forEach(function (el, i) { el.classList.toggle('active', i === cur); });
+    }
+
+    function openSidebar() {
+      sidebarEl.classList.add('open');
+      overlayEl.classList.add('open');
+      document.getElementById('sidebar-toggle').classList.add('shifted');
+    }
+    function closeSidebar() {
+      sidebarEl.classList.remove('open');
+      overlayEl.classList.remove('open');
+      document.getElementById('sidebar-toggle').classList.remove('shifted');
+    }
+
+    document.getElementById('sidebar-toggle').addEventListener('click', function (e) {
+      e.stopPropagation();
+      sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    overlayEl.addEventListener('click', function (e) { e.stopPropagation(); closeSidebar(); });
+
+    document.getElementById('present-btn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!document.fullscreenElement) toggleFullscreen();
+    });
+
+    var cursor = document.getElementById('custom-cursor');
+    document.addEventListener('mousemove', function (e) {
+      if (document.body.classList.contains('presenting')) {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      }
+    });
+
+    function toggleFullscreen() {
+      document.documentElement.requestFullscreen();
+      document.body.classList.add('presenting');
+      cursor.style.display = 'block';
+      document.getElementById('present-btn').style.display = 'none';
+      document.getElementById('sidebar-toggle').style.display = 'none';
+      closeSidebar();
+    }
+    document.addEventListener('fullscreenchange', function () {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove('presenting');
+        cursor.style.display = 'none';
+        document.getElementById('present-btn').style.display = 'flex';
+        document.getElementById('sidebar-toggle').style.display = 'flex';
+      }
+    });
+
+    function updateProgress() {
+      var pct = slides.length <= 1 ? 100 : (cur / (slides.length - 1)) * 100;
+      document.getElementById('progress-fill').style.width = pct + '%';
+    }
+
+    function show(n) {
+      if (n < 0 || n >= slides.length) { return; }
+      slides[cur].classList.remove('active');
+      cur = n;
+      slides[cur].classList.add('active');
+      numEl.textContent = (cur + 1) + ' / ' + slides.length;
+      updateProgress();
+      updateSidebarActive();
+    }
+
+    function toggleNode(header) {
+      header.classList.toggle('open');
+      var code = header.nextElementSibling;
+      if (code && code.classList.contains('pn-code')) {
+        code.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('.pn-header')) { return; }
+      show(cur + 1);
+    });
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); show(cur - 1); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { show(cur + 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { show(cur - 1); }
+    });
+  </script>
+</body>
+
+</html>
