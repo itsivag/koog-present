@@ -857,26 +857,25 @@
   <div class="slide code-slide">
     <div class="tag">Functional Agents</div>
     <div class="cr-wrap">
-      <pre class="cb" style="font-size:21.4px;line-height:1.7"><code><span class="k">val</span> mathWithTools = <span class="f">AIAgent</span>&lt;<span class="c">String</span>, <span class="c">String</span>&gt;(
+      <pre class="cb" style="font-size:21.4px;line-height:1.7"><code><span style="color:#6a9955">// Create an AIAgent instance and provide a system prompt, prompt executor, and LLM</span>
+<span class="k">val</span> mathAgent = <span class="f">AIAgent</span>&lt;<span class="c">String</span>, <span class="c">String</span>&gt;(
     systemPrompt = <span class="s">"You are a precise math assistant."</span>,
     promptExecutor = <span class="f">simpleOllamaAIExecutor</span>(),
     llmModel = <span class="c">OllamaModels</span>.Meta.<span class="c">LLAMA_3_2</span>,
-    toolRegistry = toolRegistry,
-    strategy = <span class="f">functionalStrategy</span> { input ->
-        <span class="k">var</span> responses = <span class="f">requestLLMMultiple</span>(input)
-        <span class="k">while</span> (responses.<span class="f">containsToolCalls</span>()) {
-            <span class="k">val</span> pendingCalls = <span class="f">extractToolCalls</span>(responses)
-            <span class="k">val</span> results = <span class="f">executeMultipleTools</span>(pendingCalls)
-            responses = <span class="f">sendMultipleToolResults</span>(results)
-        }
-        responses.<span class="f">single</span>().<span class="f">asAssistantMessage</span>().content
+    strategy = <span class="f">functionalStrategy</span> { input -> <span style="color:#6a9955">// Define the agent logic</span>
+        <span style="color:#6a9955">// Make one LLM call</span>
+        <span class="k">val</span> response = <span class="f">requestLLM</span>(input)
+        <span style="color:#6a9955">// Extract and return the assistant message content from the response</span>
+        response.<span class="f">asAssistantMessage</span>().content
     }
 )
-<span class="k">val</span> reply = mathWithTools.<span class="f">run</span>(<span class="s">"Multiply 12.5 and 4, then add 10."</span>)
-<span class="f">println</span>(reply)</code></pre>
+
+<span style="color:#6a9955">// Run the agent with a user input and print the result</span>
+<span class="k">val</span> result = mathAgent.<span class="f">run</span>(<span class="s">"What is 12 × 9?"</span>)
+<span class="f">println</span>(result)</code></pre>
       <div class="rb">
         <div class="rl">Output</div>
-        <div class="rt">1. 12.5 × 4 = <strong>50</strong><br><br>2. 50 + 10 = <strong>60</strong></div>
+        <div class="rt">The answer to 12 × 9 is 108.</div>
       </div>
     </div>
   </div>
