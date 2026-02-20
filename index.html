@@ -1061,116 +1061,6 @@
     </div>
   </div>
 
-  <!-- 11: GOAP -->
-  <div class="slide">
-    <div class="tag">Planner Agents — GOAP</div>
-    <div style="font-size:33px;font-weight:700;margin-bottom:24px;">Goal-Oriented Action Planning</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;">
-      <div
-        style="grid-column:span 4;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:36px;font-weight:700;">
-        A* Search</div>
-      <div
-        style="grid-column:span 2;background:#f4f4f4;border-radius:12px;padding:28px;font-size:36px;font-weight:700;min-height:120px;display:flex;align-items:flex-end;">
-        State</div>
-      <div
-        style="grid-column:span 2;background:#e8e8e8;border-radius:12px;padding:28px;font-size:36px;font-weight:700;min-height:120px;display:flex;align-items:flex-end;">
-        Actions</div>
-      <div
-        style="grid-column:span 4;background:#000;color:#fff;border-radius:12px;padding:28px;font-size:36px;font-weight:700;">
-        Goals</div>
-    </div>
-  </div>
-
-  <!-- 12: GOAP Example -->
-  <div class="slide code-slide">
-    <div class="tag">Planner Agents — GOAP Example</div>
-    <div class="cwa-wrap">
-      <pre class="cb" style="font-size:18.5px;line-height:1.6;max-height:75vh;overflow:auto"><code><span class="k">data class</span> <span class="c">ContentState</span>(
-    <span class="k">val</span> topic: <span class="c">String</span>, <span class="k">val</span> hasOutline: <span class="c">Boolean</span> = <span class="k">false</span>,
-    <span class="k">val</span> outline: <span class="c">String</span> = <span class="s">""</span>, <span class="k">val</span> hasDraft: <span class="c">Boolean</span> = <span class="k">false</span>,
-    <span class="k">val</span> draft: <span class="c">String</span> = <span class="s">""</span>, <span class="k">val</span> hasReview: <span class="c">Boolean</span> = <span class="k">false</span>,
-    <span class="k">val</span> isPublished: <span class="c">Boolean</span> = <span class="k">false</span>
-)
-<span class="k">val</span> planner = <span class="f">goap</span>&lt;<span class="c">ContentState</span>&gt;(<span class="f">typeOf</span>&lt;<span class="c">ContentState</span>&gt;()) {
-    <span class="f">action</span>(name = <span class="s">"Create outline"</span>, precondition = { !it.hasOutline },
-        belief = { it.<span class="f">copy</span>(hasOutline = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
-    ) { ctx, state ->
-        <span class="k">val</span> r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Create outline for: ${state.topic}"</span>) }; <span class="f">requestLLM</span>() }
-        state.<span class="f">copy</span>(hasOutline = <span class="k">true</span>, outline = r.content)
-    }
-    <span class="f">action</span>(name = <span class="s">"Write draft"</span>, precondition = { it.hasOutline && !it.hasDraft },
-        belief = { it.<span class="f">copy</span>(hasDraft = <span class="k">true</span>) }, cost = { <span class="n">2.0</span> }
-    ) { ctx, state ->
-        <span class="k">val</span> r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Write article based on:\n${state.outline}"</span>) }; <span class="f">requestLLM</span>() }
-        state.<span class="f">copy</span>(hasDraft = <span class="k">true</span>, draft = r.content)
-    }
-    <span class="f">action</span>(name = <span class="s">"Review content"</span>, precondition = { it.hasDraft && !it.hasReview },
-        belief = { it.<span class="f">copy</span>(hasReview = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
-    ) { ctx, state ->
-        val r = ctx.llm.<span class="f">writeSession</span> { <span class="f">appendPrompt</span> { <span class="f">user</span>(<span class="s">"Review:\n${state.draft}"</span>) }; <span class="f">requestLLM</span>() }
-        <span class="f">println</span>(<span class="s">"Review: ${r.content}"</span>); state.<span class="f">copy</span>(hasReview = <span class="k">true</span>)
-    }
-    <span class="f">action</span>(name = <span class="s">"Publish"</span>, precondition = { it.hasReview && !it.isPublished },
-        belief = { it.<span class="f">copy</span>(isPublished = <span class="k">true</span>) }, cost = { <span class="n">1.0</span> }
-    ) { _, state -> <span class="f">println</span>(<span class="s">"Publishing..."</span>); state.<span class="f">copy</span>(isPublished = <span class="k">true</span>) }
-    <span class="f">goal</span>(name = <span class="s">"Published article"</span>, description = <span class="s">"Publish the article"</span>, condition = { it.isPublished })
-}
-<span class="k">val</span> agent = <span class="f">PlannerAIAgent</span>(
-    promptExecutor = <span class="f">simpleOpenAIExecutor</span>(<span class="c">System</span>.getenv(<span class="s">"OPENAI_API_KEY"</span>)),
-    strategy = <span class="f">AIAgentPlannerStrategy</span>(<span class="s">"content-planner"</span>, planner),
-    agentConfig = <span class="f">AIAgentConfig</span>(prompt = <span class="f">prompt</span>(<span class="s">"writer"</span>) { <span class="f">system</span>(<span class="s">"You are a content writer."</span>) },
-        model = <span class="c">OpenAIModels</span>.Chat.<span class="c">GPT4o</span>, maxAgentIterations = <span class="n">20</span>)
-)
-<span class="k">suspend fun</span> <span class="f">main</span>() {
-    <span class="k">val</span> result = agent.<span class="f">run</span>(<span class="c">ContentState</span>(topic = <span class="s">"The Future of AI in Software Development"</span>))
-    <span class="f">println</span>(<span class="s">"Final state: $result"</span>)
-}</code></pre>
-      <div class="stepper">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <div class="step-title">Define State</div>
-            <div class="step-desc"><code>ContentState</code> tracks outline, draft, review, publish.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <div class="step-title">Create Outline</div>
-            <div class="step-desc">LLM generates outline from topic.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <div class="step-title">Write Draft</div>
-            <div class="step-desc">LLM writes article from outline.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-body">
-            <div class="step-title">Review Content</div>
-            <div class="step-desc">LLM reviews and suggests improvements.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">5</div>
-          <div class="step-body">
-            <div class="step-title">Publish</div>
-            <div class="step-desc">Goal condition met — article is published.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">6</div>
-          <div class="step-body">
-            <div class="step-title">Run the Agent</div>
-            <div class="step-desc">A* finds optimal action sequence to reach goal.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- 13: Prompts -->
   <div class="slide">
@@ -1898,7 +1788,7 @@
   </button>
   <div id="custom-cursor"></div>
   <div class="nav-hint">← → to navigate</div>
-  <div class="slide-number">1 / 38</div>
+  <div class="slide-number">1 / 36</div>
   <div id="progress-bar" style="position:fixed;bottom:0;left:0;width:100%;height:3px;background:#e0e0e0;z-index:100;">
     <div id="progress-fill" style="height:100%;background:#000;width:0%;transition:width 0.3s ease;"></div>
   </div>
@@ -1912,7 +1802,7 @@
     var slideTitles = [
       "Title", "Preface", "What is Koog?", "Why Koog?", "Agent Types",
       "Basic Agents", "Functional Agents", "Complex Workflow Agents",
-      "Planner Agents", "Simple Planner", "GOAP", "GOAP Example",
+      "Planner Agents", "Simple Planner",
       "Prompts", "Prompts — Code", "Multimodal Inputs", "Running Prompts",
       "LLM Client", "Prompt Executor", "Executing", "Handling Failures",
       "Tools", "Tool Types", "Built-in Tools", "Annotation-based Tools",
